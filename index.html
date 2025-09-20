@@ -1,446 +1,75 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FocusFlow - Productivity Timer</title>
-    <meta name="theme-color" content="#6366f1">
-    <meta name="description" content="Beautiful productivity timer with ambient sounds for better focus">
-    
-    <!-- PWA Meta Tags -->
-    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRm9jdXNGbG93Iiwic2hvcnRfbmFtZSI6IkZvY3VzRmxvdyIsInN0YXJ0X3VybCI6Ii4vIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiIzYzNjZmMSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LEwzTjJaeUJwWkQwaWFXTnZiaUlnZG1sbGQwSnZlRDBpTUNBd0lEUTRJRFE0SWlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M00wNXZjbWN2TWpBd01DOXpkbWNpUGdvZ0lDQWdjR0YwYUNCa1BTSk5JaXc0SURNMFFpdzRJREF0TmpBdE5DdzRMU2s0SWl3Z0x6NEtJQ0FnSUdOcGNtTnNaU0JqZUQwaU1qUWlJR041UFNJME1pSWdjajBpTTBGc2FUb2laUkozWmlCdlkzVTFJSEZpTDJobGVFeDNLRzFwSWc9PSIsInNpemVzIjoiNDh4NDgiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            color: white;
-            overflow-x: hidden;
-        }
-
-        .container {
-            max-width: 400px;
-            margin: 0 auto;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .logo {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 8px;
-            background: linear-gradient(45deg, #ffd89b, #19547b);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .subtitle {
-            opacity: 0.8;
-            font-size: 0.9rem;
-        }
-
-        .timer-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .timer-display {
-            font-size: 3.5rem;
-            font-weight: 300;
-            margin: 20px 0;
-            font-family: 'SF Mono', Monaco, monospace;
-        }
-
-        .progress-ring {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 20px;
-            position: relative;
-        }
-
-        .progress-ring svg {
-            width: 100%;
-            height: 100%;
-            transform: rotate(-90deg);
-        }
-
-        .progress-ring circle {
-            fill: transparent;
-            stroke-width: 4;
-            stroke-linecap: round;
-        }
-
-        .progress-bg {
-            stroke: rgba(255, 255, 255, 0.2);
-        }
-
-        .progress-fill {
-            stroke: #ffd89b;
-            stroke-dasharray: 565.48;
-            stroke-dashoffset: 565.48;
-            transition: stroke-dashoffset 0.3s ease;
-        }
-
-        .session-info {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-
-        .controls {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-
-        .btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 50px;
-            padding: 12px 24px;
-            color: white;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .btn.primary {
-            background: linear-gradient(45deg, #667eea, #764ba2);
-        }
-
-        .btn.primary:hover {
-            background: linear-gradient(45deg, #5a67d8, #6b46c1);
-        }
-
-        .settings-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .setting-group {
-            margin-bottom: 20px;
-        }
-
-        .setting-label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 0.9rem;
-        }
-
-        .setting-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .time-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            border-radius: 8px;
-            padding: 8px 12px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            font-size: 0.8rem;
-        }
-
-        .time-btn.active {
-            background: #ffd89b;
-            color: #333;
-        }
-
-        .sounds-section {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-
-        .sounds-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            margin-top: 15px;
-        }
-
-        .sound-btn {
-            background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 12px;
-            padding: 15px;
-            color: white;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-            font-size: 0.85rem;
-            border: 2px solid transparent;
-        }
-
-        .sound-btn:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .sound-btn.active {
-            background: rgba(255, 216, 155, 0.3);
-            border-color: #ffd89b;
-        }
-
-        .sound-emoji {
-            font-size: 1.5rem;
-            display: block;
-            margin-bottom: 5px;
-        }
-
-        .volume-control {
-            margin-top: 15px;
-        }
-
-        .volume-slider {
-            width: 100%;
-            height: 4px;
-            border-radius: 2px;
-            background: rgba(255, 255, 255, 0.3);
-            outline: none;
-            -webkit-appearance: none;
-        }
-
-        .volume-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #ffd89b;
-            cursor: pointer;
-        }
-
-        .stats {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            margin-top: auto;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .stat-item {
-            text-align: center;
-        }
-
-        .stat-number {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #ffd89b;
-        }
-
-        .stat-label {
-            font-size: 0.8rem;
-            opacity: 0.8;
-            margin-top: 4px;
-        }
-
-        @media (max-width: 480px) {
-            .container {
-                padding: 15px;
-            }
-            
-            .timer-display {
-                font-size: 2.8rem;
-            }
-            
-            .progress-ring {
-                width: 160px;
-                height: 160px;
-            }
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        .notification {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 0.9rem;
-            z-index: 1000;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-
-        .notification.show {
-            opacity: 1;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <header class="header">
-            <h1 class="logo">FocusFlow</h1>
-            <p class="subtitle">Productivity Timer with Ambient Sounds</p>
-        </header>
-
-        <div class="timer-section">
-            <div class="progress-ring">
-                <svg>
-                    <circle class="progress-bg" cx="100" cy="100" r="90"></circle>
-                    <circle class="progress-fill" cx="100" cy="100" r="90"></circle>
-                </svg>
-            </div>
-            
-            <div class="timer-display" id="timerDisplay">25:00</div>
-            <div class="session-info" id="sessionInfo">Work Session • Ready to Focus</div>
-            
-            <div class="controls">
-                <button class="btn primary" id="startBtn">Start</button>
-                <button class="btn" id="pauseBtn" style="display: none;">Pause</button>
-                <button class="btn" id="resetBtn">Reset</button>
-                <button class="btn" id="skipBtn">Skip</button>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <h3 style="margin-bottom: 15px;">⚙️ Timer Settings</h3>
-            
-            <div class="setting-group">
-                <label class="setting-label">Work Duration</label>
-                <div class="setting-controls">
-                    <button class="time-btn" data-work="15">15m</button>
-                    <button class="time-btn active" data-work="25">25m</button>
-                    <button class="time-btn" data-work="45">45m</button>
-                    <button class="time-btn" data-work="60">60m</button>
+<div class="color-preview" style="background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);">🌲</div>
+                        <div class="color-info">
+                            <h5>Forest Green</h5>
+                            <p>Natural focus</p>
+                        </div>
+                    </div>
+                    <div class="color-preset" data-preset="sunset">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);">🌅</div>
+                        <div class="color-info">
+                            <h5>Warm Sunset</h5>
+                            <p>Energy boost</p>
+                        </div>
+                    </div>
+                    <div class="color-preset" data-preset="rose">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #E91E63 0%, #9C27B0 100%);">🌸</div>
+                        <div class="color-info">
+                            <h5>Rose Garden</h5>
+                            <p>Elegant pink</p>
+                        </div>
+                    </div>
+                    <div class="color-preset" data-preset="midnight">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%);">🌙</div>
+                        <div class="color-info">
+                            <h5>Midnight</h5>
+                            <p>Deep focus</p>
+                        </div>
+                    </div>
                 </div>
             </div>
             
-            <div class="setting-group">
-                <label class="setting-label">Break Duration</label>
-                <div class="setting-controls">
-                    <button class="time-btn active" data-break="5">5m</button>
-                    <button class="time-btn" data-break="10">10m</button>
-                    <button class="time-btn" data-break="15">15m</button>
-                    <button class="time-btn" data-break="20">20m</button>
+            <div class="color-section">
+                <h4>🎯 Custom Colors</h4>
+                <div class="custom-colors">
+                    <div class="color-picker-group">
+                        <label>Background Start</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" class="color-input" id="bgStart" value="#667eea">
+                            <input type="text" class="color-hex" id="bgStartHex" value="#667eea">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Background End</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" class="color-input" id="bgEnd" value="#764ba2">
+                            <input type="text" class="color-hex" id="bgEndHex" value="#764ba2">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Accent Color</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" class="color-input" id="accentColor" value="#ffd89b">
+                            <input type="text" class="color-hex" id="accentHex" value="#ffd89b">
+                        </div>
+                    </div>
+                    <div class="color-picker-group">
+                        <label>Primary Button</label>
+                        <div class="color-input-wrapper">
+                            <input type="color" class="color-input" id="primaryColor" value="#667eea">
+                            <input type="text" class="color-hex" id="primaryHex" value="#667eea">
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="sounds-section">
-            <h3 style="margin-bottom: 5px;">🎵 Ambient Sounds</h3>
-            <p style="opacity: 0.8; font-size: 0.85rem; margin-bottom: 15px;">Choose your focus soundtrack</p>
-            
-            <div class="sounds-grid">
-                <button class="sound-btn" data-sound="rain">
-                    <span class="sound-emoji">🌧️</span>
-                    Rain
-                </button>
-                <button class="sound-btn" data-sound="forest">
-                    <span class="sound-emoji">🌲</span>
-                    Forest
-                </button>
-                <button class="sound-btn" data-sound="ocean">
-                    <span class="sound-emoji">🌊</span>
-                    Ocean
-                </button>
-                <button class="sound-btn" data-sound="fire">
-                    <span class="sound-emoji">🔥</span>
-                    Fireplace
-                </button>
-                <button class="sound-btn" data-sound="cafe">
-                    <span class="sound-emoji">☕</span>
-                    Café
-                </button>
-                <button class="sound-btn" data-sound="white">
-                    <span class="sound-emoji">⚪</span>
-                    White Noise
-                </button>
-            </div>
-            
-            <div class="volume-control">
-                <label class="setting-label">Volume</label>
-                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
-            </div>
-        </div>
-
-        <div class="stats">
-            <h3 style="margin-bottom: 5px;">📊 Today's Progress</h3>
-            <div class="stats-grid">
-                <div class="stat-item">
-                    <div class="stat-number" id="sessionsCompleted">0</div>
-                    <div class="stat-label">Sessions</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="focusTime">0h</div>
-                    <div class="stat-label">Focus Time</div>
-                </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="streak">0</div>
-                    <div class="stat-label">Streak</div>
-                </div>
+                <button class="apply-colors-btn" id="applyCustomColors">Apply Custom Colors</button>
             </div>
         </div>
     </div>
 
-    <div class="notification" id="notification"></div>
-
     <script>
         class PomodoroTimer {
             constructor() {
-                this.workDuration = 25 * 60; // 25 minutes in seconds
-                this.breakDuration = 5 * 60; // 5 minutes in seconds
+                this.workDuration = 25 * 60;
+                this.breakDuration = 5 * 60;
                 this.timeLeft = this.workDuration;
                 this.totalTime = this.workDuration;
                 this.isRunning = false;
@@ -452,7 +81,11 @@
                 this.gainNode = null;
                 this.sourceNode = null;
                 
-                // Stats
+                // Theme properties
+                this.currentTheme = 'default';
+                this.currentColorPreset = 'purple';
+                this.customColors = null;
+                
                 this.stats = JSON.parse(localStorage.getItem('focusflow-stats')) || {
                     sessionsCompleted: 0,
                     focusTimeMinutes: 0,
@@ -463,6 +96,7 @@
                 this.initElements();
                 this.initEventListeners();
                 this.initAudio();
+                this.initThemes();
                 this.updateDisplay();
                 this.updateStats();
                 this.loadSettings();
@@ -478,6 +112,14 @@
                 this.progressFill = document.querySelector('.progress-fill');
                 this.volumeSlider = document.getElementById('volumeSlider');
                 this.notification = document.getElementById('notification');
+                this.customWorkInput = document.getElementById('customWork');
+                this.customBreakInput = document.getElementById('customBreak');
+                this.setCustomWorkBtn = document.getElementById('setCustomWork');
+                this.setCustomBreakBtn = document.getElementById('setCustomBreak');
+                this.themeToggle = document.getElementById('themeToggle');
+                this.colorCustomizer = document.getElementById('colorCustomizer');
+                this.colorModal = document.getElementById('colorModal');
+                this.modalClose = document.getElementById('modalClose');
             }
             
             initEventListeners() {
@@ -487,7 +129,27 @@
                 this.skipBtn.addEventListener('click', () => this.skip());
                 this.volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value / 100));
                 
-                // Work duration buttons
+                this.setCustomWorkBtn.addEventListener('click', () => this.setCustomWorkDuration());
+                this.setCustomBreakBtn.addEventListener('click', () => this.setCustomBreakDuration());
+                
+                this.customWorkInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.setCustomWorkDuration();
+                });
+                this.customBreakInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') this.setCustomBreakDuration();
+                });
+                
+                this.themeToggle.addEventListener('click', () => this.toggleTheme());
+                this.colorCustomizer.addEventListener('click', () => this.showColorModal());
+                this.modalClose.addEventListener('click', () => this.hideColorModal());
+                
+                // Close modal when clicking overlay
+                const modalOverlay = document.getElementById('modalOverlay');
+                if (modalOverlay) {
+                    modalOverlay.addEventListener('click', () => this.hideColorModal());
+                }
+                
+                // Work/Break/Sound duration buttons
                 document.querySelectorAll('[data-work]').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         document.querySelectorAll('[data-work]').forEach(b => b.classList.remove('active'));
@@ -500,7 +162,6 @@
                     });
                 });
                 
-                // Break duration buttons
                 document.querySelectorAll('[data-break]').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         document.querySelectorAll('[data-break]').forEach(b => b.classList.remove('active'));
@@ -513,7 +174,6 @@
                     });
                 });
                 
-                // Sound buttons
                 document.querySelectorAll('[data-sound]').forEach(btn => {
                     btn.addEventListener('click', (e) => {
                         document.querySelectorAll('[data-sound]').forEach(b => b.classList.remove('active'));
@@ -522,6 +182,222 @@
                         this.saveSettings();
                     });
                 });
+            }
+            
+            initThemes() {
+                this.currentTheme = localStorage.getItem('focusflow-theme') || 'default';
+                this.currentColorPreset = localStorage.getItem('focusflow-color-preset') || 'purple';
+                this.customColors = JSON.parse(localStorage.getItem('focusflow-custom-colors')) || null;
+                
+                this.applyTheme();
+                
+                if (this.customColors) {
+                    this.applyCustomColors(this.customColors, false);
+                } else {
+                    this.applyColorPreset(this.currentColorPreset, false);
+                }
+                
+                setTimeout(() => this.initColorCustomizer(), 100);
+            }
+            
+            initColorCustomizer() {
+                // Theme buttons
+                document.getElementById('defaultThemeBtn').addEventListener('click', () => {
+                    this.setTheme('default');
+                });
+                
+                document.getElementById('darkThemeBtn').addEventListener('click', () => {
+                    this.setTheme('dark');
+                });
+                
+                document.getElementById('lightThemeBtn').addEventListener('click', () => {
+                    this.setTheme('light');
+                });
+                
+                // Color preset buttons
+                document.querySelectorAll('.color-preset').forEach(preset => {
+                    preset.addEventListener('click', () => {
+                        document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
+                        preset.classList.add('active');
+                        
+                        const presetName = preset.dataset.preset;
+                        this.applyColorPreset(presetName);
+                        this.currentColorPreset = presetName;
+                        localStorage.setItem('focusflow-color-preset', presetName);
+                        localStorage.removeItem('focusflow-custom-colors');
+                        this.customColors = null;
+                        
+                        this.showNotification(`Applied ${presetName} theme!`);
+                    });
+                });
+                
+                // Color input synchronization
+                this.syncColorInputs();
+                
+                // Apply custom colors button
+                document.getElementById('applyCustomColors').addEventListener('click', () => {
+                    this.applyCustomColorsFromInputs();
+                });
+                
+                this.updateActiveThemeButton();
+                this.updateActivePreset();
+            }
+            
+            setTheme(theme) {
+                this.currentTheme = theme;
+                this.applyTheme();
+                localStorage.setItem('focusflow-theme', this.currentTheme);
+                this.updateActiveThemeButton();
+                this.showNotification(`Switched to ${theme} theme`);
+            }
+            
+            updateActiveThemeButton() {
+                document.querySelectorAll('#defaultThemeBtn, #darkThemeBtn, #lightThemeBtn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.getElementById(this.currentTheme + 'ThemeBtn').classList.add('active');
+            }
+            
+            updateActivePreset() {
+                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
+                if (!this.customColors && this.currentColorPreset) {
+                    const activePreset = document.querySelector(`[data-preset="${this.currentColorPreset}"]`);
+                    if (activePreset) {
+                        activePreset.classList.add('active');
+                    }
+                }
+            }
+            
+            toggleTheme() {
+                const themes = ['default', 'dark', 'light'];
+                const currentIndex = themes.indexOf(this.currentTheme);
+                this.currentTheme = themes[(currentIndex + 1) % themes.length];
+                
+                this.applyTheme();
+                localStorage.setItem('focusflow-theme', this.currentTheme);
+                this.showNotification(`Switched to ${this.currentTheme} theme`);
+            }
+            
+            applyTheme() {
+                document.body.setAttribute('data-theme', this.currentTheme);
+                
+                const themeIcon = document.getElementById('themeIcon');
+                if (themeIcon) {
+                    const icons = { default: '🌙', dark: '☀️', light: '🌸' };
+                    themeIcon.textContent = icons[this.currentTheme] || '🌙';
+                }
+            }
+            
+            showColorModal() {
+                console.log('Opening color modal');
+                this.colorModal.style.display = 'block';
+                setTimeout(() => {
+                    this.colorModal.classList.add('show');
+                }, 10);
+                document.body.style.overflow = 'hidden';
+            }
+            
+            hideColorModal() {
+                console.log('Closing color modal');
+                this.colorModal.classList.remove('show');
+                this.colorModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }
+            
+            syncColorInputs() {
+                const colorInputs = [
+                    { color: 'bgStart', hex: 'bgStartHex' },
+                    { color: 'bgEnd', hex: 'bgEndHex' },
+                    { color: 'accentColor', hex: 'accentHex' },
+                    { color: 'primaryColor', hex: 'primaryHex' }
+                ];
+                
+                colorInputs.forEach(({ color, hex }) => {
+                    const colorInput = document.getElementById(color);
+                    const hexInput = document.getElementById(hex);
+                    
+                    if (colorInput && hexInput) {
+                        colorInput.addEventListener('input', (e) => {
+                            hexInput.value = e.target.value;
+                        });
+                        
+                        hexInput.addEventListener('input', (e) => {
+                            if (/^#[0-9A-F]{6}$/i.test(e.target.value)) {
+                                colorInput.value = e.target.value;
+                            }
+                        });
+                    }
+                });
+            }
+            
+            applyColorPreset(presetName, save = true) {
+                const presets = {
+                    purple: { bgStart: '#667eea', bgEnd: '#764ba2', accent: '#ffd89b', primary: '#667eea' },
+                    ocean: { bgStart: '#2196F3', bgEnd: '#21CBF3', accent: '#00E5FF', primary: '#2196F3' },
+                    forest: { bgStart: '#4CAF50', bgEnd: '#8BC34A', accent: '#76FF03', primary: '#4CAF50' },
+                    sunset: { bgStart: '#FF9800', bgEnd: '#FF5722', accent: '#FFD54F', primary: '#FF9800' },
+                    rose: { bgStart: '#E91E63', bgEnd: '#9C27B0', accent: '#FF4081', primary: '#E91E63' },
+                    midnight: { bgStart: '#2C3E50', bgEnd: '#34495E', accent: '#3498DB', primary: '#34495E' }
+                };
+                
+                const preset = presets[presetName];
+                if (preset) {
+                    this.applyCustomColors(preset, save);
+                    
+                    const inputs = {
+                        'bgStart': preset.bgStart, 'bgStartHex': preset.bgStart,
+                        'bgEnd': preset.bgEnd, 'bgEndHex': preset.bgEnd,
+                        'accentColor': preset.accent, 'accentHex': preset.accent,
+                        'primaryColor': preset.primary, 'primaryHex': preset.primary
+                    };
+                    
+                    Object.entries(inputs).forEach(([id, value]) => {
+                        const element = document.getElementById(id);
+                        if (element) element.value = value;
+                    });
+                }
+            }
+            
+            applyCustomColorsFromInputs() {
+                const colors = {
+                    bgStart: document.getElementById('bgStart').value,
+                    bgEnd: document.getElementById('bgEnd').value,
+                    accent: document.getElementById('accentColor').value,
+                    primary: document.getElementById('primaryColor').value
+                };
+                
+                this.applyCustomColors(colors);
+                this.customColors = colors;
+                localStorage.setItem('focusflow-custom-colors', JSON.stringify(colors));
+                
+                document.querySelectorAll('.color-preset').forEach(p => p.classList.remove('active'));
+                
+                this.showNotification('Custom colors applied!');
+            }
+            
+            applyCustomColors(colors, save = true) {
+                const root = document.documentElement;
+                
+                root.style.setProperty('--bg-gradient', `linear-gradient(135deg, ${colors.bgStart} 0%, ${colors.bgEnd} 100%)`);
+                root.style.setProperty('--accent-color', colors.accent);
+                root.style.setProperty('--accent-gradient', `linear-gradient(45deg, ${colors.accent}, ${colors.primary})`);
+                root.style.setProperty('--btn-primary', `linear-gradient(45deg, ${colors.primary}, ${this.darkenColor(colors.primary, 20)})`);
+                root.style.setProperty('--btn-primary-hover', `linear-gradient(45deg, ${this.darkenColor(colors.primary, 10)}, ${this.darkenColor(colors.primary, 30)})`);
+                
+                if (save) {
+                    localStorage.setItem('focusflow-custom-colors', JSON.stringify(colors));
+                }
+            }
+            
+            darkenColor(hex, percent) {
+                const num = parseInt(hex.replace("#", ""), 16);
+                const amt = Math.round(2.55 * percent);
+                const R = (num >> 16) - amt;
+                const G = (num >> 8 & 0x00FF) - amt;
+                const B = (num & 0x0000FF) - amt;
+                return "#" + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 + 
+                    (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 + 
+                    (B < 255 ? B < 1 ? 0 : B : 255)).toString(16).slice(1);
             }
             
             async initAudio() {
@@ -545,7 +421,6 @@
                 
                 if (!soundType || !this.audioContext) return;
                 
-                // Generate different types of ambient sounds
                 const sounds = {
                     rain: () => this.generateRainSound(),
                     forest: () => this.generateForestSound(),
@@ -657,6 +532,42 @@
                 }
             }
             
+            setCustomWorkDuration() {
+                const minutes = parseInt(this.customWorkInput.value);
+                if (minutes && minutes >= 1 && minutes <= 180) {
+                    document.querySelectorAll('[data-work]').forEach(b => b.classList.remove('active'));
+                    
+                    this.workDuration = minutes * 60;
+                    if (this.isWorkSession && !this.isRunning) {
+                        this.reset();
+                    }
+                    
+                    this.showNotification(`Work duration set to ${minutes} minutes`);
+                    this.customWorkInput.value = '';
+                    this.saveSettings();
+                } else {
+                    this.showNotification('Please enter a valid duration (1-180 minutes)');
+                }
+            }
+            
+            setCustomBreakDuration() {
+                const minutes = parseInt(this.customBreakInput.value);
+                if (minutes && minutes >= 1 && minutes <= 60) {
+                    document.querySelectorAll('[data-break]').forEach(b => b.classList.remove('active'));
+                    
+                    this.breakDuration = minutes * 60;
+                    if (!this.isWorkSession && !this.isRunning) {
+                        this.reset();
+                    }
+                    
+                    this.showNotification(`Break duration set to ${minutes} minutes`);
+                    this.customBreakInput.value = '';
+                    this.saveSettings();
+                } else {
+                    this.showNotification('Please enter a valid duration (1-60 minutes)');
+                }
+            }
+            
             start() {
                 if (this.audioContext && this.audioContext.state === 'suspended') {
                     this.audioContext.resume();
@@ -710,9 +621,9 @@
                     this.stats.focusTimeMinutes += Math.round(this.workDuration / 60);
                     this.stats.streak++;
                     this.stats.lastSessionDate = new Date().toDateString();
-                    this.showNotification('🎉 Work session complete! Time for a break.');
+                    this.showNotification('Work session complete! Time for a break.');
                 } else {
-                    this.showNotification('✨ Break time over! Ready to focus again.');
+                    this.showNotification('Break time over! Ready to focus again.');
                 }
                 
                 this.isWorkSession = !this.isWorkSession;
@@ -733,12 +644,10 @@
                 const seconds = this.timeLeft % 60;
                 this.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
                 
-                // Update progress ring
                 const progress = (this.totalTime - this.timeLeft) / this.totalTime;
                 const offset = 565.48 - (progress * 565.48);
                 this.progressFill.style.strokeDashoffset = offset;
                 
-                // Add pulse effect when running
                 if (this.isRunning) {
                     this.timerDisplay.classList.add('pulse');
                 } else {
@@ -775,8 +684,894 @@
                     this.notification.classList.remove('show');
                 }, 3000);
                 
-                // Browser notification if permission granted
                 if (Notification.permission === 'granted') {
                     new Notification('FocusFlow', {
                         body: message,
-                        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnI
+                        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPC9zdmc+'
+                    });
+                }
+            }
+            
+            saveStats() {
+                localStorage.setItem('focusflow-stats', JSON.stringify(this.stats));
+            }
+            
+            saveSettings() {
+                const settings = {
+                    workDuration: this.workDuration,
+                    breakDuration: this.breakDuration,
+                    currentSound: this.currentSound,
+                    volume: this.volumeSlider.value,
+                    theme: this.currentTheme,
+                    colorPreset: this.currentColorPreset,
+                    customColors: this.customColors
+                };
+                localStorage.setItem('focusflow-settings', JSON.stringify(settings));
+            }
+            
+            loadSettings() {
+                const settings = JSON.parse(localStorage.getItem('focusflow-settings')) || {};
+                
+                if (settings.workDuration) this.workDuration = settings.workDuration;
+                if (settings.breakDuration) this.breakDuration = settings.breakDuration;
+                if (settings.volume) this.volumeSlider.value = settings.volume;
+                
+                document.querySelectorAll('[data-work]').forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.work) * 60 === this.workDuration);
+                });
+                
+                document.querySelectorAll('[data-break]').forEach(btn => {
+                    btn.classList.toggle('active', parseInt(btn.dataset.break) * 60 === this.breakDuration);
+                });
+                
+                if (settings.currentSound) {
+                    document.querySelectorAll('[data-sound]').forEach(btn => {
+                        btn.classList.toggle('active', btn.dataset.sound === settings.currentSound);
+                    });
+                    this.setAmbientSound(settings.currentSound);
+                }
+                
+                this.reset();
+            }
+        }
+
+        // Initialize the timer when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new PomodoroTimer();
+            
+            // Request notification permission
+            if ('Notification' in window && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+        });
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusFlow - Productivity Timer</title>
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="Beautiful productivity timer with ambient sounds for better focus">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRm9jdXNGbG93Iiwic2hvcnRfbmFtZSI6IkZvY3VzRmxvdyIsInN0YXJ0X3VybCI6Ii4vIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiIzYzNjZmMSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LEwzTjJaeUJwWkQwaWFXTnZiaUlnZG1sbGQwSnZlRDBpTUNBd0lEUTRJRFE0SWlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M00wNXZjbWN2TWpBd01DOXpkbWNpUGdvZ0lDQWdjR0YwYUNCa1BTSk5JaXc0SURNMFFpdzRJREF0TmpBdE5DdzRMU2s0SWl3Z0x6NEtJQ0FnSUdOcGNtTnNaU0JqZUQwaU1qUWlJR041UFNJME1pSWdjajBpTTBGc2FUb2laUkozWmlCdlkzVTFJSEZpTDJobGVFeDNLRzFwSWc9PSIsInNpemVzIjoiNDh4NDgiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gradient);
+            min-height: 100vh;
+            color: var(--text-color);
+            overflow-x: hidden;
+            transition: all 0.4s ease;
+        }
+
+        /* CSS Variables for Dynamic Theming */
+        :root {
+            --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --text-color: white;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-border: rgba(255, 255, 255, 0.2);
+            --accent-color: #ffd89b;
+            --accent-gradient: linear-gradient(45deg, #ffd89b, #19547b);
+            --btn-bg: rgba(255, 255, 255, 0.2);
+            --btn-hover: rgba(255, 255, 255, 0.3);
+            --btn-primary: linear-gradient(45deg, #667eea, #764ba2);
+            --btn-primary-hover: linear-gradient(45deg, #5a67d8, #6b46c1);
+            --progress-bg: rgba(255, 255, 255, 0.2);
+            --sound-active: rgba(255, 216, 155, 0.3);
+            --input-bg: rgba(255, 255, 255, 0.1);
+            --input-border: rgba(255, 255, 255, 0.2);
+            --custom-btn-bg: rgba(255, 216, 155, 0.3);
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-gradient: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 100%);
+            --text-color: #e2e8f0;
+            --card-bg: rgba(255, 255, 255, 0.03);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-color: #fbbf24;
+            --accent-gradient: linear-gradient(45deg, #fbbf24, #f59e0b);
+            --btn-bg: rgba(255, 255, 255, 0.05);
+            --btn-hover: rgba(255, 255, 255, 0.12);
+            --btn-primary: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            --btn-primary-hover: linear-gradient(45deg, #2563eb, #1e40af);
+            --progress-bg: rgba(255, 255, 255, 0.1);
+            --sound-active: rgba(251, 191, 36, 0.15);
+            --input-bg: rgba(255, 255, 255, 0.05);
+            --input-border: rgba(255, 255, 255, 0.1);
+            --custom-btn-bg: rgba(251, 191, 36, 0.2);
+        }
+
+        /* Light Theme */
+        [data-theme="light"] {
+            --bg-gradient: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            --text-color: #1e293b;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --card-border: rgba(148, 163, 184, 0.3);
+            --accent-color: #3b82f6;
+            --accent-gradient: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            --btn-bg: rgba(148, 163, 184, 0.15);
+            --btn-hover: rgba(148, 163, 184, 0.25);
+            --btn-primary: linear-gradient(45deg, #3b82f6, #1d4ed8);
+            --btn-primary-hover: linear-gradient(45deg, #2563eb, #1e40af);
+            --progress-bg: rgba(148, 163, 184, 0.3);
+            --sound-active: rgba(59, 130, 246, 0.15);
+            --input-bg: rgba(255, 255, 255, 0.8);
+            --input-border: rgba(148, 163, 184, 0.3);
+            --custom-btn-bg: rgba(59, 130, 246, 0.2);
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            margin-bottom: 30px;
+        }
+
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header-spacer {
+            flex: 1;
+        }
+
+        .header-center {
+            text-align: center;
+        }
+
+        .header-controls {
+            flex: 1;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .theme-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1.2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .theme-btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+        .timer-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+        }
+
+        .timer-display {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin: 20px 0;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .progress-ring {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .progress-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: transparent;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+
+        .progress-bg {
+            stroke: var(--progress-bg);
+        }
+
+        .progress-fill {
+            stroke: var(--accent-color);
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .session-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: var(--btn-bg);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 24px;
+            color: var(--text-color);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background: var(--btn-primary);
+            color: white;
+        }
+
+        .btn.primary:hover {
+            background: var(--btn-primary-hover);
+        }
+
+        .settings-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--card-border);
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .setting-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .time-btn {
+            background: var(--btn-bg);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+            border: 1px solid var(--card-border);
+        }
+
+        .time-btn.active {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .custom-time-input {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-color);
+            font-size: 0.8rem;
+            width: 70px;
+            text-align: center;
+        }
+
+        .custom-time-input::placeholder {
+            color: var(--text-color);
+            opacity: 0.6;
+        }
+
+        .custom-time-input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+            background: var(--btn-hover);
+        }
+
+        .custom-btn {
+            background: var(--custom-btn-bg);
+            border: 1px solid var(--accent-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .custom-btn:hover {
+            background: var(--btn-hover);
+            transform: translateY(-1px);
+        }
+
+        .sounds-section {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--card-border);
+        }
+
+        .sounds-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sound-btn {
+            background: var(--btn-bg);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.85rem;
+            border: 2px solid transparent;
+        }
+
+        .sound-btn:hover {
+            background: var(--btn-hover);
+        }
+
+        .sound-btn.active {
+            background: var(--sound-active);
+            border-color: var(--accent-color);
+        }
+
+        .sound-emoji {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .volume-control {
+            margin-top: 15px;
+        }
+
+        .volume-slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: var(--progress-bg);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: var(--accent-color);
+            cursor: pointer;
+        }
+
+        .stats {
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid var(--card-border);
+            margin-top: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        /* Color Customizer Modal */
+        .color-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: none;
+        }
+
+        .color-modal.show {
+            display: block;
+        }
+
+        .color-modal-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .color-modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--card-bg);
+            border: 2px solid var(--card-border);
+            border-radius: 15px;
+            padding: 20px;
+            width: 90%;
+            max-width: 380px;
+            max-height: 85vh;
+            overflow-y: auto;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--btn-bg);
+            border: 1px solid var(--card-border);
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: var(--text-color);
+            width: 28px;
+            height: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+
+        .modal-close:hover {
+            background: var(--btn-hover);
+            transform: scale(1.1);
+        }
+
+        .color-section {
+            margin-bottom: 25px;
+        }
+
+        .color-section h4 {
+            margin-bottom: 12px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .color-presets {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .color-preset {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+            background: var(--btn-bg);
+        }
+
+        .color-preset:hover {
+            background: var(--btn-hover);
+        }
+
+        .color-preset.active {
+            border-color: var(--accent-color);
+            background: var(--sound-active);
+        }
+
+        .color-preview {
+            width: 30px;
+            height: 30px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .color-info h5 {
+            margin: 0 0 2px 0;
+            font-size: 0.85rem;
+        }
+
+        .color-info p {
+            margin: 0;
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+
+        .custom-colors {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .color-picker-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .color-picker-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .color-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 6px;
+            padding: 6px;
+        }
+
+        .color-input {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            background: none;
+        }
+
+        .color-hex {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-color);
+            font-size: 0.75rem;
+            font-family: monospace;
+        }
+
+        .apply-colors-btn {
+            background: var(--btn-primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 100%;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+
+        .apply-colors-btn:hover {
+            background: var(--btn-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .timer-display {
+                font-size: 2.8rem;
+            }
+            
+            .progress-ring {
+                width: 160px;
+                height: 160px;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .header-center {
+                order: -1;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="header-spacer"></div>
+                <div class="header-center">
+                    <h1 class="logo">FocusFlow</h1>
+                    <p class="subtitle">Productivity Timer with Ambient Sounds</p>
+                </div>
+                <div class="header-controls">
+                    <button class="theme-btn" id="themeToggle" title="Toggle Dark/Light Mode">
+                        <span id="themeIcon">🌙</span>
+                    </button>
+                    <button class="theme-btn" id="colorCustomizer" title="Customize Colors">
+                        <span>🎨</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <div class="timer-section">
+            <div class="progress-ring">
+                <svg>
+                    <circle class="progress-bg" cx="100" cy="100" r="90"></circle>
+                    <circle class="progress-fill" cx="100" cy="100" r="90"></circle>
+                </svg>
+            </div>
+            
+            <div class="timer-display" id="timerDisplay">25:00</div>
+            <div class="session-info" id="sessionInfo">Work Session • Ready to Focus</div>
+            
+            <div class="controls">
+                <button class="btn primary" id="startBtn">Start</button>
+                <button class="btn" id="pauseBtn" style="display: none;">Pause</button>
+                <button class="btn" id="resetBtn">Reset</button>
+                <button class="btn" id="skipBtn">Skip</button>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3 style="margin-bottom: 15px;">⚙️ Timer Settings</h3>
+            
+            <div class="setting-group">
+                <label class="setting-label">Work Duration</label>
+                <div class="setting-controls">
+                    <button class="time-btn" data-work="15">15m</button>
+                    <button class="time-btn active" data-work="25">25m</button>
+                    <button class="time-btn" data-work="45">45m</button>
+                    <button class="time-btn" data-work="60">60m</button>
+                    <input type="number" class="custom-time-input" id="customWork" min="1" max="180" placeholder="Custom">
+                    <button class="custom-btn" id="setCustomWork">Set</button>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">Break Duration</label>
+                <div class="setting-controls">
+                    <button class="time-btn active" data-break="5">5m</button>
+                    <button class="time-btn" data-break="10">10m</button>
+                    <button class="time-btn" data-break="15">15m</button>
+                    <button class="time-btn" data-break="20">20m</button>
+                    <input type="number" class="custom-time-input" id="customBreak" min="1" max="60" placeholder="Custom">
+                    <button class="custom-btn" id="setCustomBreak">Set</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sounds-section">
+            <h3 style="margin-bottom: 5px;">🎵 Ambient Sounds</h3>
+            <p style="opacity: 0.8; font-size: 0.85rem; margin-bottom: 15px;">Choose your focus soundtrack</p>
+            
+            <div class="sounds-grid">
+                <button class="sound-btn" data-sound="rain">
+                    <span class="sound-emoji">🌧️</span>
+                    Rain
+                </button>
+                <button class="sound-btn" data-sound="forest">
+                    <span class="sound-emoji">🌲</span>
+                    Forest
+                </button>
+                <button class="sound-btn" data-sound="ocean">
+                    <span class="sound-emoji">🌊</span>
+                    Ocean
+                </button>
+                <button class="sound-btn" data-sound="fire">
+                    <span class="sound-emoji">🔥</span>
+                    Fireplace
+                </button>
+                <button class="sound-btn" data-sound="cafe">
+                    <span class="sound-emoji">☕</span>
+                    Café
+                </button>
+                <button class="sound-btn" data-sound="white">
+                    <span class="sound-emoji">⚪</span>
+                    White Noise
+                </button>
+            </div>
+            
+            <div class="volume-control">
+                <label class="setting-label">Volume</label>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <div class="stats">
+            <h3 style="margin-bottom: 5px;">📊 Today's Progress</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="sessionsCompleted">0</div>
+                    <div class="stat-label">Sessions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="focusTime">0h</div>
+                    <div class="stat-label">Focus Time</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="streak">0</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <!-- Color Customizer Modal -->
+    <div class="color-modal" id="colorModal">
+        <div class="color-modal-content">
+            <button class="modal-close" id="modalClose">×</button>
+            <h3 style="margin-bottom: 25px; text-align: center;">🎨 Customize Your Theme</h3>
+            
+            <div class="color-section">
+                <h4>🌓 Theme Mode</h4>
+                <div style="display: flex; gap: 10px;">
+                    <button class="time-btn active" id="defaultThemeBtn">Default</button>
+                    <button class="time-btn" id="darkThemeBtn">Dark</button>
+                    <button class="time-btn" id="lightThemeBtn">Light</button>
+                </div>
+            </div>
+            
+            <div class="color-section">
+                <h4>🎨 Color Presets</h4>
+                <div class="color-presets">
+                    <div class="color-preset active" data-preset="purple">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">💜</div>
+                        <div class="color-info">
+                            <h5>Purple Sunset</h5>
+                            <p>Classic gradient</p>
+                        </div>
+                    </div>
+                    <div class="color-preset" data-preset="ocean">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #2196F3 0%, #21CBF3 100%);">🌊</div>
+                        <div class="color-info">
+                            <h5>Ocean Blue</h5>
+                            <p>Calming waves</p>
+                        </div>
+                    </div>
+                    <div class="color-preset" data-preset="forest">
+                        <div class="color-preview" style="background: linear-gradient(135deg, #4CAF50 0%, #8BC34A 100%);">🌲
