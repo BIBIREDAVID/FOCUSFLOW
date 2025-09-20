@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusFlow - Productivity Timer</title>
+    <meta name="theme-color" content="#6366f1">
+    <meta name="description" content="Beautiful productivity timer with ambient sounds for better focus">
+    
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiRm9jdXNGbG93Iiwic2hvcnRfbmFtZSI6IkZvY3VzRmxvdyIsInN0YXJ0X3VybCI6Ii4vIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzAwMDAwMCIsInRoZW1lX2NvbG9yIjoiIzYzNjZmMSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWw7YmFzZTY0LEwzTjJaeUJwWkQwaWFXTnZiaUlnZG1sbGQwSnZlRDBpTUNBd0lEUTRJRFE0SWlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M00wNXZjbWN2TWpBd01DOXpkbWNpUGdvZ0lDQWdjR0YwYUNCa1BTSk5JaXc0SURNMFFpdzRJREF0TmpBdE5DdzRMU2s0SWl3Z0x6NEtJQ0FnSUdOcGNtTnNaU0JqZUQwaU1qUWlJR041UFNJME1pSWdjajBpTTBGc2FUb2laUkozWmlCdlkzVTFJSEZpTDJobGVFeDNLRzFwSWc9PSIsInNpemVzIjoiNDh4NDgiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            background: linear-gradient(45deg, #ffd89b, #19547b);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+
+        .timer-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .timer-display {
+            font-size: 3.5rem;
+            font-weight: 300;
+            margin: 20px 0;
+            font-family: 'SF Mono', Monaco, monospace;
+        }
+
+        .progress-ring {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto 20px;
+            position: relative;
+        }
+
+        .progress-ring svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+
+        .progress-ring circle {
+            fill: transparent;
+            stroke-width: 4;
+            stroke-linecap: round;
+        }
+
+        .progress-bg {
+            stroke: rgba(255, 255, 255, 0.2);
+        }
+
+        .progress-fill {
+            stroke: #ffd89b;
+            stroke-dasharray: 565.48;
+            stroke-dashoffset: 565.48;
+            transition: stroke-dashoffset 0.3s ease;
+        }
+
+        .session-info {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 50px;
+            padding: 12px 24px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .btn.primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+        }
+
+        .btn.primary:hover {
+            background: linear-gradient(45deg, #5a67d8, #6b46c1);
+        }
+
+        .settings-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .setting-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .time-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 0.8rem;
+        }
+
+        .time-btn.active {
+            background: #ffd89b;
+            color: #333;
+        }
+
+        .sounds-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .sounds-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .sound-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            font-size: 0.85rem;
+            border: 2px solid transparent;
+        }
+
+        .sound-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .sound-btn.active {
+            background: rgba(255, 216, 155, 0.3);
+            border-color: #ffd89b;
+        }
+
+        .sound-emoji {
+            font-size: 1.5rem;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .volume-control {
+            margin-top: 15px;
+        }
+
+        .volume-slider {
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            -webkit-appearance: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #ffd89b;
+            cursor: pointer;
+        }
+
+        .stats {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin-top: auto;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #ffd89b;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin-top: 4px;
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 15px;
+            }
+            
+            .timer-display {
+                font-size: 2.8rem;
+            }
+            
+            .progress-ring {
+                width: 160px;
+                height: 160px;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 0.9rem;
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1 class="logo">FocusFlow</h1>
+            <p class="subtitle">Productivity Timer with Ambient Sounds</p>
+        </header>
+
+        <div class="timer-section">
+            <div class="progress-ring">
+                <svg>
+                    <circle class="progress-bg" cx="100" cy="100" r="90"></circle>
+                    <circle class="progress-fill" cx="100" cy="100" r="90"></circle>
+                </svg>
+            </div>
+            
+            <div class="timer-display" id="timerDisplay">25:00</div>
+            <div class="session-info" id="sessionInfo">Work Session • Ready to Focus</div>
+            
+            <div class="controls">
+                <button class="btn primary" id="startBtn">Start</button>
+                <button class="btn" id="pauseBtn" style="display: none;">Pause</button>
+                <button class="btn" id="resetBtn">Reset</button>
+                <button class="btn" id="skipBtn">Skip</button>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h3 style="margin-bottom: 15px;">⚙️ Timer Settings</h3>
+            
+            <div class="setting-group">
+                <label class="setting-label">Work Duration</label>
+                <div class="setting-controls">
+                    <button class="time-btn" data-work="15">15m</button>
+                    <button class="time-btn active" data-work="25">25m</button>
+                    <button class="time-btn" data-work="45">45m</button>
+                    <button class="time-btn" data-work="60">60m</button>
+                </div>
+            </div>
+            
+            <div class="setting-group">
+                <label class="setting-label">Break Duration</label>
+                <div class="setting-controls">
+                    <button class="time-btn active" data-break="5">5m</button>
+                    <button class="time-btn" data-break="10">10m</button>
+                    <button class="time-btn" data-break="15">15m</button>
+                    <button class="time-btn" data-break="20">20m</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="sounds-section">
+            <h3 style="margin-bottom: 5px;">🎵 Ambient Sounds</h3>
+            <p style="opacity: 0.8; font-size: 0.85rem; margin-bottom: 15px;">Choose your focus soundtrack</p>
+            
+            <div class="sounds-grid">
+                <button class="sound-btn" data-sound="rain">
+                    <span class="sound-emoji">🌧️</span>
+                    Rain
+                </button>
+                <button class="sound-btn" data-sound="forest">
+                    <span class="sound-emoji">🌲</span>
+                    Forest
+                </button>
+                <button class="sound-btn" data-sound="ocean">
+                    <span class="sound-emoji">🌊</span>
+                    Ocean
+                </button>
+                <button class="sound-btn" data-sound="fire">
+                    <span class="sound-emoji">🔥</span>
+                    Fireplace
+                </button>
+                <button class="sound-btn" data-sound="cafe">
+                    <span class="sound-emoji">☕</span>
+                    Café
+                </button>
+                <button class="sound-btn" data-sound="white">
+                    <span class="sound-emoji">⚪</span>
+                    White Noise
+                </button>
+            </div>
+            
+            <div class="volume-control">
+                <label class="setting-label">Volume</label>
+                <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="50">
+            </div>
+        </div>
+
+        <div class="stats">
+            <h3 style="margin-bottom: 5px;">📊 Today's Progress</h3>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="sessionsCompleted">0</div>
+                    <div class="stat-label">Sessions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="focusTime">0h</div>
+                    <div class="stat-label">Focus Time</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="streak">0</div>
+                    <div class="stat-label">Streak</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <script>
+        class PomodoroTimer {
+            constructor() {
+                this.workDuration = 25 * 60; // 25 minutes in seconds
+                this.breakDuration = 5 * 60; // 5 minutes in seconds
+                this.timeLeft = this.workDuration;
+                this.totalTime = this.workDuration;
+                this.isRunning = false;
+                this.isWorkSession = true;
+                this.timer = null;
+                this.currentSound = null;
+                this.audioContext = null;
+                this.currentAudioBuffer = null;
+                this.gainNode = null;
+                this.sourceNode = null;
+                
+                // Stats
+                this.stats = JSON.parse(localStorage.getItem('focusflow-stats')) || {
+                    sessionsCompleted: 0,
+                    focusTimeMinutes: 0,
+                    streak: 0,
+                    lastSessionDate: null
+                };
+                
+                this.initElements();
+                this.initEventListeners();
+                this.initAudio();
+                this.updateDisplay();
+                this.updateStats();
+                this.loadSettings();
+            }
+            
+            initElements() {
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.sessionInfo = document.getElementById('sessionInfo');
+                this.startBtn = document.getElementById('startBtn');
+                this.pauseBtn = document.getElementById('pauseBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.skipBtn = document.getElementById('skipBtn');
+                this.progressFill = document.querySelector('.progress-fill');
+                this.volumeSlider = document.getElementById('volumeSlider');
+                this.notification = document.getElementById('notification');
+            }
+            
+            initEventListeners() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.pauseBtn.addEventListener('click', () => this.pause());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.skipBtn.addEventListener('click', () => this.skip());
+                this.volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value / 100));
+                
+                // Work duration buttons
+                document.querySelectorAll('[data-work]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('[data-work]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.workDuration = parseInt(e.target.dataset.work) * 60;
+                        if (this.isWorkSession && !this.isRunning) {
+                            this.reset();
+                        }
+                        this.saveSettings();
+                    });
+                });
+                
+                // Break duration buttons
+                document.querySelectorAll('[data-break]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('[data-break]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.breakDuration = parseInt(e.target.dataset.break) * 60;
+                        if (!this.isWorkSession && !this.isRunning) {
+                            this.reset();
+                        }
+                        this.saveSettings();
+                    });
+                });
+                
+                // Sound buttons
+                document.querySelectorAll('[data-sound]').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        document.querySelectorAll('[data-sound]').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        this.setAmbientSound(e.target.dataset.sound);
+                        this.saveSettings();
+                    });
+                });
+            }
+            
+            async initAudio() {
+                try {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    this.gainNode = this.audioContext.createGain();
+                    this.gainNode.connect(this.audioContext.destination);
+                    this.gainNode.gain.value = 0.5;
+                } catch (error) {
+                    console.log('Audio context not supported');
+                }
+            }
+            
+            async setAmbientSound(soundType) {
+                if (this.sourceNode) {
+                    this.sourceNode.stop();
+                    this.sourceNode = null;
+                }
+                
+                this.currentSound = soundType;
+                
+                if (!soundType || !this.audioContext) return;
+                
+                // Generate different types of ambient sounds
+                const sounds = {
+                    rain: () => this.generateRainSound(),
+                    forest: () => this.generateForestSound(),
+                    ocean: () => this.generateOceanSound(),
+                    fire: () => this.generateFireSound(),
+                    cafe: () => this.generateCafeSound(),
+                    white: () => this.generateWhiteNoise()
+                };
+                
+                if (sounds[soundType]) {
+                    this.currentAudioBuffer = sounds[soundType]();
+                    this.playAmbientSound();
+                }
+            }
+            
+            generateWhiteNoise() {
+                const length = this.audioContext.sampleRate * 2;
+                const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < length; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.3;
+                }
+                
+                return buffer;
+            }
+            
+            generateRainSound() {
+                const length = this.audioContext.sampleRate * 2;
+                const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < length; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.2 * Math.sin(i * 0.01);
+                }
+                
+                return buffer;
+            }
+            
+            generateOceanSound() {
+                const length = this.audioContext.sampleRate * 4;
+                const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < length; i++) {
+                    const wave = Math.sin(i * 0.001) * 0.3;
+                    const noise = (Math.random() * 2 - 1) * 0.1;
+                    data[i] = wave + noise;
+                }
+                
+                return buffer;
+            }
+            
+            generateForestSound() {
+                const length = this.audioContext.sampleRate * 3;
+                const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < length; i++) {
+                    const wind = Math.sin(i * 0.0001) * 0.1;
+                    const birds = Math.random() > 0.999 ? Math.sin(i * 0.1) * 0.2 : 0;
+                    data[i] = wind + birds;
+                }
+                
+                return buffer;
+            }
+            
+            generateFireSound() {
+                const length = this.audioContext.sampleRate * 2;
+                const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < length; i++) {
+                    const crackle = Math.random() > 0.995 ? (Math.random() * 2 - 1) * 0.3 : 0;
+                    const base = (Math.random() * 2 - 1) * 0.05;
+                    data[i] = crackle + base;
+                }
+                
+                return buffer;
+            }
+            
+            generateCafeSound() {
+                const length = this.audioContext.sampleRate * 3;
+                const buffer = this.audioContext.createBuffer(1, length, this.audioContext.sampleRate);
+                const data = buffer.getChannelData(0);
+                
+                for (let i = 0; i < length; i++) {
+                    const chatter = (Math.random() * 2 - 1) * 0.1;
+                    const ambience = Math.sin(i * 0.0001) * 0.05;
+                    data[i] = chatter + ambience;
+                }
+                
+                return buffer;
+            }
+            
+            playAmbientSound() {
+                if (!this.currentAudioBuffer || !this.audioContext) return;
+                
+                this.sourceNode = this.audioContext.createBufferSource();
+                this.sourceNode.buffer = this.currentAudioBuffer;
+                this.sourceNode.loop = true;
+                this.sourceNode.connect(this.gainNode);
+                this.sourceNode.start(0);
+            }
+            
+            setVolume(volume) {
+                if (this.gainNode) {
+                    this.gainNode.gain.value = volume;
+                }
+            }
+            
+            start() {
+                if (this.audioContext && this.audioContext.state === 'suspended') {
+                    this.audioContext.resume();
+                }
+                
+                this.isRunning = true;
+                this.startBtn.style.display = 'none';
+                this.pauseBtn.style.display = 'inline-block';
+                
+                this.timer = setInterval(() => {
+                    this.timeLeft--;
+                    this.updateDisplay();
+                    
+                    if (this.timeLeft <= 0) {
+                        this.complete();
+                    }
+                }, 1000);
+                
+                this.updateSessionInfo();
+            }
+            
+            pause() {
+                this.isRunning = false;
+                clearInterval(this.timer);
+                this.startBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.updateSessionInfo();
+            }
+            
+            reset() {
+                this.isRunning = false;
+                clearInterval(this.timer);
+                this.timeLeft = this.isWorkSession ? this.workDuration : this.breakDuration;
+                this.totalTime = this.timeLeft;
+                this.startBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                this.updateDisplay();
+                this.updateSessionInfo();
+            }
+            
+            skip() {
+                this.complete();
+            }
+            
+            complete() {
+                this.isRunning = false;
+                clearInterval(this.timer);
+                
+                if (this.isWorkSession) {
+                    this.stats.sessionsCompleted++;
+                    this.stats.focusTimeMinutes += Math.round(this.workDuration / 60);
+                    this.stats.streak++;
+                    this.stats.lastSessionDate = new Date().toDateString();
+                    this.showNotification('🎉 Work session complete! Time for a break.');
+                } else {
+                    this.showNotification('✨ Break time over! Ready to focus again.');
+                }
+                
+                this.isWorkSession = !this.isWorkSession;
+                this.timeLeft = this.isWorkSession ? this.workDuration : this.breakDuration;
+                this.totalTime = this.timeLeft;
+                
+                this.startBtn.style.display = 'inline-block';
+                this.pauseBtn.style.display = 'none';
+                
+                this.updateDisplay();
+                this.updateSessionInfo();
+                this.updateStats();
+                this.saveStats();
+            }
+            
+            updateDisplay() {
+                const minutes = Math.floor(this.timeLeft / 60);
+                const seconds = this.timeLeft % 60;
+                this.timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Update progress ring
+                const progress = (this.totalTime - this.timeLeft) / this.totalTime;
+                const offset = 565.48 - (progress * 565.48);
+                this.progressFill.style.strokeDashoffset = offset;
+                
+                // Add pulse effect when running
+                if (this.isRunning) {
+                    this.timerDisplay.classList.add('pulse');
+                } else {
+                    this.timerDisplay.classList.remove('pulse');
+                }
+            }
+            
+            updateSessionInfo() {
+                const sessionType = this.isWorkSession ? 'Work Session' : 'Break Time';
+                let status;
+                
+                if (this.isRunning) {
+                    status = this.isWorkSession ? 'Focusing...' : 'Relaxing...';
+                } else if (this.timeLeft === this.totalTime) {
+                    status = this.isWorkSession ? 'Ready to Focus' : 'Ready to Rest';
+                } else {
+                    status = 'Paused';
+                }
+                
+                this.sessionInfo.textContent = `${sessionType} • ${status}`;
+            }
+            
+            updateStats() {
+                document.getElementById('sessionsCompleted').textContent = this.stats.sessionsCompleted;
+                document.getElementById('focusTime').textContent = Math.round(this.stats.focusTimeMinutes / 60) + 'h';
+                document.getElementById('streak').textContent = this.stats.streak;
+            }
+            
+            showNotification(message) {
+                this.notification.textContent = message;
+                this.notification.classList.add('show');
+                
+                setTimeout(() => {
+                    this.notification.classList.remove('show');
+                }, 3000);
+                
+                // Browser notification if permission granted
+                if (Notification.permission === 'granted') {
+                    new Notification('FocusFlow', {
+                        body: message,
+                        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHZpZXdCb3g9IjAgMCA0OCA0OCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnI
